@@ -40,39 +40,66 @@ def load_and_explore_gis_data(file_path):
         Dataset shape: (150, 6) - That's 150 rows and 6 columns!
         ...
     """
+    print("=" * 50)
+    print("LOADING AND EXPLORING GIS DATA")
+    print("=" * 50)
     
-    # TODO: Print a header to show what function is running
-    # TODO: Use print("=" * 50) and print("LOADING AND EXPLORING GIS DATA")
+    # Step 1: Check if file exists
+    if not os.path.exists(file_path):
+        print(f"❌ ERROR: File not found: {file_path}")
+        print("Please check:")
+        print("- Is the file path correct?")
+        print("- Are you in the right directory?")
+        print("- Does the file exist?")
+        return None
     
-    # TODO: Print the file path being loaded
-    # TODO: Use print(f"Loading data from: {file_path}")
+    print(f"📁 Loading data from: {file_path}")
     
-    # TODO: Try to load the CSV file using pd.read_csv()
-    # TODO: Wrap in try/except to handle missing files gracefully
-    # TODO: If file doesn't exist, print error and return None
+    # Step 2: Load the CSV file
+    try:
+        df = pd.read_csv(file_path)
+        print("✅ File loaded successfully!")
+    except Exception as e:
+        print(f"❌ ERROR loading file: {e}")
+        return None
     
-    # TODO: Print the shape of the DataFrame (rows, columns)
-    # TODO: Use df.shape to get a tuple like (150, 6)
-    # TODO: Print it in a friendly way: "Dataset shape: (150, 6) - That's 150 rows and 6 columns!"
+    # Step 3: Show basic dataset information
+    print(f"\n📊 DATASET OVERVIEW")
+    print(f"Shape: {df.shape} - {df.shape[0]} rows and {df.shape[1]} columns")
+    print(f"Columns: {list(df.columns)}")
     
-    # TODO: Print the column names
-    # TODO: Use df.columns to get the list
-    # TODO: Print: "Columns: ['station_id', 'name', 'latitude', ...]"
+    # Step 4: Show data types
+    print(f"\n🔧 DATA TYPES:")
+    for col in df.columns:
+        print(f"   {col}: {df[col].dtype}")
     
-    # TODO: Print the first few rows using df.head()
-    # TODO: Show this to help understand the data
+    # Step 5: Show first few rows
+    print(f"\n👀 FIRST 5 ROWS:")
+    print(df.head())
     
-    # TODO: Print basic statistics using df.describe()
-    # TODO: This shows min, max, mean for numeric columns
+    # Step 6: Show summary statistics
+    print(f"\n📈 SUMMARY STATISTICS:")
+    print(df.describe())
     
-    # TODO: Check for missing values using df.isnull().sum()
-    # TODO: Print how many missing values in each column
+    # Step 7: Check for data quality issues
+    print(f"\n🔍 DATA QUALITY CHECK:")
+    missing = df.isnull().sum()
+    if missing.sum() > 0:
+        print("Missing values found:")
+        print(missing[missing > 0])
+    else:
+        print("✅ No missing values")
+        
+    duplicates = df.duplicated().sum()
+    if duplicates > 0:
+        print(f"⚠️  Found {duplicates} duplicate rows")
+    else:
+        print("✅ No duplicate rows")
     
-    # TODO: Print a completion message
+    print(f"\n🎉 Data exploration complete! Dataset is ready for analysis.")
     
-    # TODO: Return the loaded DataFrame
-    
-    pass  # Remove this line when you implement the function
+    return df
+
 
 
 # =============================================================================
@@ -103,30 +130,83 @@ def filter_environmental_data(df, min_temp=15, max_temp=30, quality="good"):
           - Temperature: 20.0°C to 30.0°C
           - Data quality: good
     """
+    print("=" * 50)
+    print("FILTERING ENVIRONMENTAL DATA")
+    print("=" * 50)
     
-    # TODO: Print a header
-    # TODO: Use print("=" * 50) and print("FILTERING ENVIRONMENTAL DATA")
+    # Input validation
+    if df is None or df.empty:
+        print("❌ ERROR: Empty or None DataFrame provided")
+        return pd.DataFrame()
     
-    # TODO: Print the original DataFrame shape
-    # TODO: Use len(df) to get the number of rows
+    # Check for required columns
+    required_columns = ['temperature_c', 'data_quality']
+    missing_columns = [col for col in required_columns if col not in df.columns]
     
-    # TODO: Filter by temperature range using boolean indexing
-    # TODO: Create a mask: (df['temperature_c'] >= min_temp) & (df['temperature_c'] <= max_temp)
-    # TODO: Apply the mask: filtered_df = df[mask]
+    if missing_columns:
+        print(f"❌ ERROR: Missing required columns: {missing_columns}")
+        print(f"📋 Available columns: {list(df.columns)}")
+        return pd.DataFrame()
     
-    # TODO: Filter by data quality
-    # TODO: Add another condition: filtered_df = filtered_df[filtered_df['data_quality'] == quality]
+    original_count = len(df)
+    print(f"📊 Starting with {original_count} rows of environmental data")
     
-    # TODO: Calculate and print filtering statistics
-    # TODO: - How many rows remain after filtering
-    # TODO: - What percentage of data was retained
-    # TODO: - Show the filter criteria used
+    # Show filtering criteria
+    print(f"\n🎯 FILTERING CRITERIA:")
+    print(f"   Temperature range: {min_temp}°C to {max_temp}°C")
+    print(f"   Data quality: '{quality}'")
     
-    # TODO: Return the filtered DataFrame
+    # Check if quality level exists
+    available_qualities = df['data_quality'].unique()
+    if quality not in available_qualities:
+        print(f"\n⚠️  WARNING: Quality level '{quality}' not found in data")
+        print(f"📋 Available quality levels: {list(available_qualities)}")
+        print("🔄 Returning original data without quality filtering...")
+        quality_filter = pd.Series([True] * len(df), index=df.index)  # No filtering
+    else:
+        quality_filter = df['data_quality'] == quality
     
-    pass  # Remove this line when you implement the function
-
-
+    # Apply all filters
+    print(f"\n🔍 APPLYING FILTERS...")
+    
+    # Temperature range filter
+    temp_filter = (df['temperature_c'] >= min_temp) & (df['temperature_c'] <= max_temp)
+    temp_filtered_count = temp_filter.sum()
+    temp_removed = original_count - temp_filtered_count
+    print(f"   🌡️  Temperature filter: kept {temp_filtered_count}, removed {temp_removed} rows")
+    
+    # Quality filter
+    quality_filtered_count = quality_filter.sum()
+    quality_removed = original_count - quality_filtered_count
+    print(f"   🏷️  Quality filter: kept {quality_filtered_count}, removed {quality_removed} rows")
+    
+    # Combined filter
+    combined_filter = temp_filter & quality_filter
+    filtered_df = df[combined_filter].copy()
+    
+    final_count = len(filtered_df)
+    total_removed = original_count - final_count
+    removal_pct = (total_removed / original_count) * 100 if original_count > 0 else 0
+    
+    print(f"\n📈 FILTERING RESULTS:")
+    print(f"   Original dataset: {original_count} rows")
+    print(f"   After filtering: {final_count} rows kept")
+    print(f"   Total removed: {total_removed} rows ({removal_pct:.1f}%)")
+    
+    # Show statistics of filtered data
+    if not filtered_df.empty:
+        print(f"\n📊 FILTERED DATA SUMMARY:")
+        print(f"   Temperature range: {filtered_df['temperature_c'].min():.1f}°C to {filtered_df['temperature_c'].max():.1f}°C")
+        print(f"   Average temperature: {filtered_df['temperature_c'].mean():.1f}°C")
+        print(f"   Quality distribution: {dict(filtered_df['data_quality'].value_counts())}")
+    else:
+        print(f"\n⚠️  WARNING: No data remains after filtering!")
+        print(f"   Consider relaxing your filtering criteria.")
+    
+    print(f"\n✅ Filtering complete! Ready for analysis.")
+    
+    return filtered_df
+    
 # =============================================================================
 # FUNCTION 3: CALCULATE STATION STATISTICS
 # =============================================================================
