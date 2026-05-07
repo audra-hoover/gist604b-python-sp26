@@ -50,52 +50,20 @@ def load_spatial_data(file_path: Union[str, Path], **kwargs) -> gpd.GeoDataFrame
         >>> gdf = load_spatial_data('data/cities.geojson')
         >>> print(f"Loaded {len(gdf)} features")
     """
-print("🔍 VERIFYING DOWNLOADED DATA")
-print("=" * 50)
-print()
-
-# Define expected files
-data_dir = Path("../../data")
-expected_files = {
-    'Ecoregions': data_dir / "ecoregions" / "epa_level3_western_us.geojson",
-    'Cities': data_dir / "cities" / "ne_cities_us.geojson",
-    'Protected Areas': data_dir / "protected_areas" / "national_parks_major.geojson"
-}
-
-# Check each dataset
-all_exist = True
-total_size = 0
-
-for name, path in expected_files.items():
-    if path.exists():
-        # Load to get feature count
-        gdf = gpd.read_file(path)
-        size_kb = path.stat().st_size / 1024
-        total_size += size_kb
-        
-        print(f"✅ {name}")
-        print(f"   File: {path.name}")
-        print(f"   Features: {len(gdf):,}")
-        print(f"   Size: {size_kb:.1f} KB")
-        print(f"   CRS: {gdf.crs}")
-        print()
-    else:
-        print(f"❌ {name}: NOT FOUND")
-        print(f"   Expected: {path}")
-        print()
-        all_exist = False
-
-print("=" * 50)
-if all_exist:
-    print(f"✅ ALL DATA DOWNLOADED SUCCESSFULLY!")
-    print(f"   Total size: {total_size:.1f} KB ({total_size / 1024:.2f} MB)")
-    print()
-    print("🚀 Ready to start the assignment!")
-else:
-    print("❌ SOME FILES MISSING")
-    print("   Run Section 1 above to download all data")
-    raise NotImplementedError("load_spatial_data not yet implemented")
-
+# Convert to Path object for consistent handling
+    file_path = Path(file_path)
+    
+    # Check if file exists
+    if not file_path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+    
+    # Try to load the spatial data
+    try:
+        gdf = gpd.read_file(file_path, **kwargs)
+    except Exception as e:
+        raise ValueError(f"Cannot read spatial data from {file_path}: {str(e)}")
+    
+    return gdf
 
 # Function 2: Explore Properties
 
